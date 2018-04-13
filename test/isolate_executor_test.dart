@@ -55,8 +55,6 @@ class AdditionalContents { int get id => 10; }
   });
 }
 
-void f() => null;
-
 class SimpleReturner extends Executable {
   SimpleReturner(Map<String, dynamic> message) : super(message);
 

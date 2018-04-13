@@ -1,22 +1,31 @@
 # isolate_executor
 
-A library for Dart developers.
+This library contains types that allow for executing code in a spawned isolate, perhaps with additional imports.
 
-Created from templates made available by Stagehand under a BSD-style
-[license](https://github.com/dart-lang/stagehand/blob/master/LICENSE).
+Subclass `Executable` and override its `execute` method. Invoke `IsolateExecutor.executeWithType`, passing in that subclass.
+The code in `execute` will run in another isolate. Any value it returns will be returned by `IsolateExecutor.executeWithType`.
 
-## Usage
+A returned value must be a primitive type (anything that is encodable as JSON). You may pass parameters to the other isolate by providing
+a message map. 
 
-A simple usage example:
+Example:
 
-    import 'package:isolate_executor/isolate_executor.dart';
+```dart
+class Echo extends Executable {
+  Echo(Map<String, dynamic> message)
+      : echoMessage = message['echo'],
+        super(message);
 
-    main() {
-      var awesome = new Awesome();
-    }
+  final String echoMessage;
 
-## Features and bugs
+  @override
+  Future<dynamic> execute() async {
+    return echoMessage;
+  }
+}
 
-Please file feature requests and bugs at the [issue tracker][tracker].
-
-[tracker]: http://example.com/issues/replaceme
+Future main() async {
+    final result = await IsolateExecutor.executeWithType(Echo, message: {'echo': 'hello'});
+    assert(result == 'hello');
+}
+``` 

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:mirrors';
 import 'dart:async';
@@ -52,7 +53,7 @@ Future main (List<String> args, Map<String, dynamic> message) async {
 
   static Future<ClassDeclaration> _getClass(Type type) async {
     final uri = await Isolate.resolvePackageUri(reflectClass(type).location.sourceUri);
-    final fileUnit = parseDartFile(uri.path);
+    final fileUnit = parseDartFile(uri.toFilePath(windows: Platform.isWindows));
     final typeName = MirrorSystem.getName(reflectClass(type).simpleName);
 
     return fileUnit.declarations

@@ -1,5 +1,9 @@
 # Changelog
 
-## 0.0.1
+## 1.0.1
 
-- Initial version, created by Stagehand
+- Fixes issue when used on Windows OS
+
+## 1.0.0
+
+- Initial release

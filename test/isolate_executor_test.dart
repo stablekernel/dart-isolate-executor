@@ -119,5 +119,5 @@ class AdditionalContentsInstantiator extends Executable {
 
 Future<ProcessResult> getDependencies(Uri projectDir) async {
   final cmd = Platform.isWindows ? "pub.bat" : "pub";
-  return Process.run(cmd, ["get"], workingDirectory: projectDir.path);
+  return Process.run(cmd, ["get"], workingDirectory: projectDir.toFilePath(windows: Platform.isWindows));
 }

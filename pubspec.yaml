@@ -1,14 +1,14 @@
 name: isolate_executor
 description: This library contains types that allow for executing code in a spawned isolate, perhaps with additional imports.
-version: 1.0.1
+version: 2.0.0-dev
 homepage: https://github.com/stablekernel/dart-isolate-executor
 author: stable|kernel <jobs@stablekernel.com>
 
 environment:
-  sdk: '>=1.20.1 <2.0.0'
+  sdk: ^2.0.0-dev
 
 dependencies:
-  analyzer: '>=0.30.0 <0.32.0'
+  analyzer: '>=0.32.0 <0.33.0'
 
 dev_dependencies:
   test: ^0.12.0

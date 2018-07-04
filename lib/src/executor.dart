@@ -2,9 +2,10 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:isolate_executor/src/executable.dart';
 import 'package:isolate_executor/src/source_generator.dart';
 
-class IsolateExecutor {
+class IsolateExecutor<U> {
   IsolateExecutor(this.generator, {this.packageConfigURI, Map<String, dynamic> message}) : this.message = message ?? {};
 
   final SourceGenerator generator;
@@ -19,7 +20,7 @@ class IsolateExecutor {
   final StreamController<String> _logListener = new StreamController<String>();
   final StreamController<dynamic> _eventListener = new StreamController<dynamic>();
 
-  Future<dynamic> execute() async {
+  Future<U> execute() async {
     if (packageConfigURI != null && !(new File.fromUri(packageConfigURI).existsSync())) {
       throw new StateError("Package file '$packageConfigURI' not found. Run 'pub get' and retry.");
     }
@@ -72,17 +73,15 @@ class IsolateExecutor {
     }
   }
 
-  static Future<dynamic> executeWithType(Type executableType,
+  static Future<T> run<T>(Executable<T> executable,
       {Uri packageConfigURI,
       List<String> imports,
       String additionalContents,
-      Map<String, dynamic> message,
       void eventHandler(dynamic event),
       void logHandler(String line),
       List<Type> additionalTypes}) async {
-    final source = new SourceGenerator(executableType,
-        imports: imports, additionalContents: additionalContents, additionalTypes: additionalTypes);
-    var executor = new IsolateExecutor(source, packageConfigURI: packageConfigURI, message: message);
+    final source = new SourceGenerator(executable.runtimeType, imports: imports, additionalContents: additionalContents, additionalTypes: additionalTypes);
+    var executor = new IsolateExecutor<T>(source, packageConfigURI: packageConfigURI, message: executable.message);
 
     if (eventHandler != null) {
       executor.events.listen(eventHandler);

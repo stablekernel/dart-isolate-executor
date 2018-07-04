@@ -5,25 +5,32 @@ import 'package:isolate_executor/isolate_executor.dart';
 import 'package:test/test.dart';
 
 void main() {
+  final projDir = Directory.current.uri.resolve("test/").resolve("test_package/");
+
+  setUpAll(() async {
+    await getDependencies(projDir);
+  });
+
   test("Can run an Executable and get its return value", () async {
-    final result = await IsolateExecutor.executeWithType(SimpleReturner);
+    final result =
+        await IsolateExecutor.executeWithType(SimpleReturner, packageConfigURI: projDir.resolve(".packages"));
     expect(result, 1);
   });
 
   test("Logged messages are available through logger stream", () async {
     final msgs = [];
-    await IsolateExecutor.executeWithType(SimpleReturner, logHandler: (msg) => msgs.add(msg));
+    await IsolateExecutor.executeWithType(SimpleReturner,
+        logHandler: (msg) => msgs.add(msg), packageConfigURI: projDir.resolve(".packages"));
     expect(msgs, ["hello"]);
   });
 
   test("Send values to Executable and use them", () async {
-    final result = await IsolateExecutor.executeWithType(Echo, message: {'echo': 'hello'});
+    final result = await IsolateExecutor.executeWithType(Echo,
+        message: {'echo': 'hello'}, packageConfigURI: projDir.resolve(".packages"));
     expect(result, 'hello');
   });
 
   test("Run from another package", () async {
-    final projDir = Directory.current.uri.resolve("test/").resolve("test_package/");
-    await getDependencies(projDir);
     final result = await IsolateExecutor.executeWithType(InPackage,
         packageConfigURI: projDir.resolve(".packages"), imports: ["package:test_package/lib.dart"]);
 
@@ -34,7 +41,8 @@ void main() {
     var completers = [new Completer(), new Completer(), new Completer()];
     var futures = [completers[0].future, completers[1].future, completers[2].future];
 
-    final result = await IsolateExecutor.executeWithType(Streamer, eventHandler: (event) {
+    final result = await IsolateExecutor.executeWithType(Streamer, packageConfigURI: projDir.resolve(".packages"),
+        eventHandler: (event) {
       completers.last.complete(event);
       completers.removeLast();
     });
@@ -47,7 +55,8 @@ void main() {
   });
 
   test("Can instantiate types including in additionalContents", () async {
-    final result = await IsolateExecutor.executeWithType(AdditionalContentsInstantiator, additionalContents: """
+    final result = await IsolateExecutor.executeWithType(AdditionalContentsInstantiator,
+        packageConfigURI: projDir.resolve(".packages"), additionalContents: """
 class AdditionalContents { int get id => 10; }    
     """);
 
@@ -82,11 +91,11 @@ abstract class SomeObjectBaseClass {
   String get id;
 }
 
-class InPackage extends Executable {
+class InPackage extends Executable<Map<String, String>> {
   InPackage(Map<String, dynamic> message) : super(message);
 
   @override
-  Future<dynamic> execute() async {
+  Future<Map<String, String>> execute() async {
     SomeObjectBaseClass def = instanceOf("DefaultObject");
     SomeObjectBaseClass pos = instanceOf("PositionalArgumentsObject", positionalArguments: ["positionalArgs"]);
     SomeObjectBaseClass nam = instanceOf("NamedArgumentsObject", namedArguments: {#id: "namedArgs"});
@@ -101,7 +110,7 @@ class Streamer extends Executable {
   @override
   Future<dynamic> execute() async {
     send(1);
-    send({"key" : "value"});
+    send({"key": "value"});
     send({"key1": "value1", "key2": "value2"});
     return 0;
   }

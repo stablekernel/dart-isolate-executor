@@ -3,11 +3,12 @@ import 'dart:isolate';
 import 'dart:mirrors';
 
 abstract class Executable<T> {
-  Executable(Map<String, dynamic> message) : _sendPort = message["_sendPort"];
+  Executable(this.message) : _sendPort = message["_sendPort"];
 
   Future<T> execute();
 
-  SendPort _sendPort;
+  final Map<String, dynamic> message;
+  final SendPort _sendPort;
 
   U instanceOf<U>(String typeName,
       {List positionalArguments: const [], Map<Symbol, dynamic> namedArguments, Symbol constructorName}) {
@@ -22,7 +23,8 @@ abstract class Executable<T> {
               orElse: () => throw new ArgumentError("Unknown type '$typeName'. Did you forget to import it?"));
     }
 
-    return typeMirror.newInstance(constructorName ?? const Symbol(""), positionalArguments, namedArguments).reflectee as U;
+    return typeMirror.newInstance(constructorName ?? const Symbol(""), positionalArguments, namedArguments).reflectee
+        as U;
   }
 
   void send(dynamic message) {

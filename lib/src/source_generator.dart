@@ -10,6 +10,7 @@ class SourceGenerator {
   SourceGenerator(this.executableType, {this.imports, this.additionalContents, this.additionalTypes});
 
   Type executableType;
+
   String get typeName => MirrorSystem.getName(reflectType(executableType).simpleName);
   final List<String> imports;
   final String additionalContents;
@@ -54,8 +55,8 @@ Future main (List<String> args, Map<String, dynamic> message) async {
     final typeName = MirrorSystem.getName(reflectClass(type).simpleName);
 
     return fileUnit.declarations
-      .where((u) => u is ClassDeclaration)
-      .map((cu) => cu as ClassDeclaration)
-      .firstWhere((classDecl) => classDecl.name.name == typeName);
+        .where((u) => u is ClassDeclaration)
+        .map((cu) => cu as ClassDeclaration)
+        .firstWhere((classDecl) => classDecl.name.name == typeName);
   }
 }

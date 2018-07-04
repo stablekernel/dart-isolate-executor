@@ -13,25 +13,24 @@ void main() {
 
   test("Can run an Executable and get its return value", () async {
     final result =
-        await IsolateExecutor.executeWithType(SimpleReturner, packageConfigURI: projDir.resolve(".packages"));
+        await IsolateExecutor.run(SimpleReturner({}), packageConfigURI: projDir.resolve(".packages"));
     expect(result, 1);
   });
 
   test("Logged messages are available through logger stream", () async {
     final msgs = [];
-    await IsolateExecutor.executeWithType(SimpleReturner,
+    await IsolateExecutor.run(SimpleReturner({}),
         logHandler: (msg) => msgs.add(msg), packageConfigURI: projDir.resolve(".packages"));
     expect(msgs, ["hello"]);
   });
 
   test("Send values to Executable and use them", () async {
-    final result = await IsolateExecutor.executeWithType(Echo,
-        message: {'echo': 'hello'}, packageConfigURI: projDir.resolve(".packages"));
+    final result = await IsolateExecutor.run(Echo({'echo': 'hello'}), packageConfigURI: projDir.resolve(".packages"));
     expect(result, 'hello');
   });
 
   test("Run from another package", () async {
-    final result = await IsolateExecutor.executeWithType(InPackage,
+    final result = await IsolateExecutor.run(InPackage({}),
         packageConfigURI: projDir.resolve(".packages"), imports: ["package:test_package/lib.dart"]);
 
     expect(result, {"def": "default", "pos": "positionalArgs", "nam": "namedArgs", "con": "fromID"});
@@ -41,7 +40,7 @@ void main() {
     var completers = [new Completer(), new Completer(), new Completer()];
     var futures = [completers[0].future, completers[1].future, completers[2].future];
 
-    final result = await IsolateExecutor.executeWithType(Streamer, packageConfigURI: projDir.resolve(".packages"),
+    final result = await IsolateExecutor.run(Streamer({}), packageConfigURI: projDir.resolve(".packages"),
         eventHandler: (event) {
       completers.last.complete(event);
       completers.removeLast();
@@ -55,9 +54,9 @@ void main() {
   });
 
   test("Can instantiate types including in additionalContents", () async {
-    final result = await IsolateExecutor.executeWithType(AdditionalContentsInstantiator,
+    final result = await IsolateExecutor.run(AdditionalContentsInstantiator({}),
         packageConfigURI: projDir.resolve(".packages"), additionalContents: """
-class AdditionalContents { int get id => 10; }    
+class AdditionalContents { int get id => 10; }
     """);
 
     expect(result, 10);
@@ -74,7 +73,7 @@ class SimpleReturner extends Executable {
   }
 }
 
-class Echo extends Executable {
+class Echo extends Executable<String> {
   Echo(Map<String, dynamic> message)
       : echoMessage = message['echo'],
         super(message);
@@ -82,7 +81,7 @@ class Echo extends Executable {
   final String echoMessage;
 
   @override
-  Future<dynamic> execute() async {
+  Future<String> execute() async {
     return echoMessage;
   }
 }

@@ -9,9 +9,6 @@ import 'package:isolate_executor/src/executable.dart';
 class SourceGenerator {
   SourceGenerator(this.executableType, {this.imports, this.additionalContents, this.additionalTypes});
 
-  // How do we provide the types that are used in the executableType?
-  // How do we reference them in the executableType?
-
   Type executableType;
   String get typeName => MirrorSystem.getName(reflectType(executableType).simpleName);
   final List<String> imports;

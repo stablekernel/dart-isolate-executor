@@ -2,14 +2,14 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:mirrors';
 
-abstract class Executable {
+abstract class Executable<T> {
   Executable(Map<String, dynamic> message) : _sendPort = message["_sendPort"];
 
-  Future<dynamic> execute();
+  Future<T> execute();
 
   SendPort _sendPort;
 
-  dynamic instanceOf(String typeName,
+  U instanceOf<U>(String typeName,
       {List positionalArguments: const [], Map<Symbol, dynamic> namedArguments, Symbol constructorName}) {
     ClassMirror typeMirror = currentMirrorSystem().isolate.rootLibrary.declarations[new Symbol(typeName)];
     if (typeMirror == null) {
@@ -22,7 +22,7 @@ abstract class Executable {
               orElse: () => throw new ArgumentError("Unknown type '$typeName'. Did you forget to import it?"));
     }
 
-    return typeMirror.newInstance(constructorName ?? const Symbol(""), positionalArguments, namedArguments).reflectee;
+    return typeMirror.newInstance(constructorName ?? const Symbol(""), positionalArguments, namedArguments).reflectee as U;
   }
 
   void send(dynamic message) {

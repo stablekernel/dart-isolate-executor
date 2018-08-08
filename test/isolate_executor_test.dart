@@ -61,6 +61,16 @@ class AdditionalContents { int get id => 10; }
 
     expect(result, 10);
   });
+
+  test("If error is thrown, it is made available to consumer and the stack trace has been trimmed of script source", () async {
+    try {
+      await IsolateExecutor.run(Thrower({}), packageConfigURI: projDir.resolve(".packages"));
+      fail('unreachable');
+    } on StateError catch (e, st) {
+      expect(e.toString(), contains("thrower-error"));
+      expect(st.toString().contains("import"), false);
+    }
+  });
 }
 
 class SimpleReturner extends Executable {
@@ -112,6 +122,15 @@ class Streamer extends Executable {
     send({"key": "value"});
     send({"key1": "value1", "key2": "value2"});
     return 0;
+  }
+}
+
+class Thrower extends Executable {
+  Thrower(Map<String, dynamic> message) : super(message);
+
+  @override
+  Future<dynamic> execute() async {
+    throw StateError('thrower-error');
   }
 }
 

@@ -25,11 +25,12 @@ class IsolateExecutor<U> {
       throw new StateError("Package file '$packageConfigURI' not found. Run 'pub get' and retry.");
     }
 
+    final scriptSource = Uri.encodeComponent(await generator.scriptSource);
+
     var onErrorPort = new ReceivePort()
       ..listen((err) async {
-        if (err is List<String>) {
-          final source = Uri.encodeComponent(await generator.scriptSource);
-          final stack = new StackTrace.fromString(err.last.replaceAll(source, ""));
+        if (err is List) {
+          final stack = new StackTrace.fromString(err.last.replaceAll(scriptSource, ""));
 
           completer.completeError(new StateError(err.first), stack);
         } else {
@@ -54,8 +55,7 @@ class IsolateExecutor<U> {
     try {
       message["_sendPort"] = controlPort.sendPort;
 
-      final source = await generator.scriptSource;
-      final dataUri = Uri.parse("data:application/dart;charset=utf-8,${Uri.encodeComponent(source)}");
+      final dataUri = Uri.parse("data:application/dart;charset=utf-8,${scriptSource}");
       if (packageConfigURI != null) {
         await Isolate.spawnUri(dataUri, [], message,
             errorsAreFatal: true, onError: onErrorPort.sendPort, packageConfig: packageConfigURI);

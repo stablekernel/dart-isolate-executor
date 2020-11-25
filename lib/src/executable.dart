@@ -11,20 +11,32 @@ abstract class Executable<T> {
   final SendPort _sendPort;
 
   U instanceOf<U>(String typeName,
-      {List positionalArguments: const [], Map<Symbol, dynamic> namedArguments, Symbol constructorName}) {
-    ClassMirror typeMirror = currentMirrorSystem().isolate.rootLibrary.declarations[new Symbol(typeName)];
+      {List positionalArguments: const [],
+      Map<Symbol, dynamic> namedArguments = const <Symbol, dynamic>{},
+      Symbol constructorName}) {
+    ClassMirror typeMirror = currentMirrorSystem()
+        .isolate
+        .rootLibrary
+        .declarations[new Symbol(typeName)];
     if (typeMirror == null) {
       typeMirror = currentMirrorSystem()
           .libraries
           .values
-          .where((lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
+          .where(
+              (lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
           .expand((lib) => lib.declarations.values)
-          .firstWhere((decl) => decl is ClassMirror && MirrorSystem.getName(decl.simpleName) == typeName,
-              orElse: () => throw new ArgumentError("Unknown type '$typeName'. Did you forget to import it?"));
+          .firstWhere(
+              (decl) =>
+                  decl is ClassMirror &&
+                  MirrorSystem.getName(decl.simpleName) == typeName,
+              orElse: () => throw new ArgumentError(
+                  "Unknown type '$typeName'. Did you forget to import it?"));
     }
 
-    return typeMirror.newInstance(constructorName ?? const Symbol(""), positionalArguments, namedArguments).reflectee
-        as U;
+    return typeMirror
+        .newInstance(constructorName ?? const Symbol(""), positionalArguments,
+            namedArguments)
+        .reflectee as U;
   }
 
   void send(dynamic message) {

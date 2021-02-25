@@ -3,22 +3,27 @@ import 'dart:isolate';
 import 'dart:mirrors';
 import 'dart:async';
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:isolate_executor/src/executable.dart';
 
 class SourceGenerator {
-  SourceGenerator(this.executableType, {this.imports, this.additionalContents, this.additionalTypes});
+  SourceGenerator(this.executableType,
+      {this.imports, this.additionalContents, this.additionalTypes});
 
   Type executableType;
 
-  String get typeName => MirrorSystem.getName(reflectType(executableType).simpleName);
-  final List<String> imports;
-  final String additionalContents;
-  final List<Type> additionalTypes;
+  String get typeName =>
+      MirrorSystem.getName(reflectType(executableType).simpleName);
+  final List<String>? imports;
+  final String? additionalContents;
+  final List<Type>? additionalTypes;
 
   Future<String> get scriptSource async {
     final typeSource = (await _getClass(executableType)).toSource();
-    var builder = new StringBuffer();
+    var builder = StringBuffer();
 
     builder.writeln("import 'dart:async';");
     builder.writeln("import 'dart:isolate';");
@@ -29,7 +34,7 @@ class SourceGenerator {
     builder.writeln("""
 Future main (List<String> args, Map<String, dynamic> message) async {
   final sendPort = message['_sendPort'];
-  final executable = new $typeName(message);
+  final executable = $typeName(message);
   final result = await executable.execute();
   sendPort.send({"_result": result});
 }
@@ -50,11 +55,18 @@ Future main (List<String> args, Map<String, dynamic> message) async {
   }
 
   static Future<ClassDeclaration> _getClass(Type type) async {
-    final uri = await Isolate.resolvePackageUri(reflectClass(type).location.sourceUri);
-    final fileUnit = parseDartFile(uri.toFilePath(windows: Platform.isWindows));
+    final uri =
+        await Isolate.resolvePackageUri(reflectClass(type).location!.sourceUri);
+    final path = uri!.toFilePath(windows: Platform.isWindows);
+
+    final analysisContextCollection =
+        AnalysisContextCollection(includedPaths: [path]);
+    final context = analysisContextCollection.contextFor(path);
+    final session = context.currentSession;
+    final unit = session.getParsedUnit(path);
     final typeName = MirrorSystem.getName(reflectClass(type).simpleName);
 
-    return fileUnit.declarations
+    return unit.unit.declarations
         .where((u) => u is ClassDeclaration)
         .map((cu) => cu as ClassDeclaration)
         .firstWhere((classDecl) => classDecl.name.name == typeName);

@@ -5,10 +5,10 @@ homepage: https://github.com/stablekernel/dart-isolate-executor
 author: stable|kernel <jobs@stablekernel.com>
 
 environment:
-  sdk: ">=2.0.0 <3.0.0"
+  sdk: ">=2.12.0-0 <3.0.0"
 
 dependencies:
-  analyzer: '>=0.32.0 <0.50.0'
+  analyzer: ^1.0.0
 
 dev_dependencies:
   test: ^1.3.0

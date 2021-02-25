@@ -13,7 +13,7 @@ class PositionalArgumentsObject implements SomeObjectBaseClass {
 }
 
 class NamedArgumentsObject implements SomeObjectBaseClass {
-  NamedArgumentsObject({this.id});
+  NamedArgumentsObject({this.id = ''});
 
   String id;
 }

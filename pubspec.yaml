@@ -1,6 +1,6 @@
-name: isolate_executor
+name: conduit_isolate_executor
 description: This library contains types that allow for executing code in a spawned isolate, perhaps with additional imports.
-version: 2.0.2+3
+version: 0.1.0
 homepage: https://github.com/stablekernel/dart-isolate-executor
 author: stable|kernel <jobs@stablekernel.com>
 

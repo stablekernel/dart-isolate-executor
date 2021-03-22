@@ -8,9 +8,8 @@ import 'package:analyzer/dart/analysis/context_builder.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:isolate_executor/src/executable.dart';
+import 'package:conduit_isolate_executor/src/executable.dart';
 
 class SourceGenerator {
   SourceGenerator(this.executableType,

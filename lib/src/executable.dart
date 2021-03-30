@@ -10,33 +10,36 @@ abstract class Executable<T> {
   final Map<String, dynamic> message;
   final SendPort? _sendPort;
 
-  U instanceOf<U>(String typeName,
-      {List positionalArguments: const [],
-      Map<Symbol, dynamic> namedArguments = const {},
-      Symbol? constructorName}) {
+  U instanceOf<U>(
+    String typeName, {
+    List positionalArguments = const [],
+    Map<Symbol, dynamic> namedArguments = const {},
+    Symbol constructorName = const Symbol(""),
+  }) {
     ClassMirror? typeMirror = currentMirrorSystem()
         .isolate
         .rootLibrary
         .declarations[Symbol(typeName)] as ClassMirror?;
-    if (typeMirror == null) {
-      typeMirror = currentMirrorSystem()
-              .libraries
-              .values
-              .where((lib) =>
-                  lib.uri.scheme == "package" || lib.uri.scheme == "file")
-              .expand((lib) => lib.declarations.values)
-              .firstWhere(
-                  (decl) =>
-                      decl is ClassMirror &&
-                      MirrorSystem.getName(decl.simpleName) == typeName,
-                  orElse: () => throw ArgumentError(
-                      "Unknown type '$typeName'. Did you forget to import it?"))
-          as ClassMirror?;
-    }
+
+    typeMirror ??= currentMirrorSystem()
+        .libraries
+        .values
+        .where((lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
+        .expand((lib) => lib.declarations.values)
+        .firstWhere(
+          (decl) =>
+              decl is ClassMirror &&
+              MirrorSystem.getName(decl.simpleName) == typeName,
+          orElse: () => throw ArgumentError(
+              "Unknown type '$typeName'. Did you forget to import it?"),
+        ) as ClassMirror?;
 
     return typeMirror!
-        .newInstance(constructorName ?? const Symbol(""), positionalArguments,
-            namedArguments)
+        .newInstance(
+          constructorName,
+          positionalArguments,
+          namedArguments,
+        )
         .reflectee as U;
   }
 

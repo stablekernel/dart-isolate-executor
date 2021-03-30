@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:mirrors';
-import 'dart:async';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_builder.dart';
@@ -12,27 +11,31 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:conduit_isolate_executor/src/executable.dart';
 
 class SourceGenerator {
-  SourceGenerator(this.executableType,
-      {this.imports, this.additionalContents, this.additionalTypes});
+  SourceGenerator(
+    this.executableType, {
+    this.imports = const [],
+    this.additionalTypes = const [],
+    this.additionalContents,
+  });
 
   Type executableType;
 
   String get typeName =>
       MirrorSystem.getName(reflectType(executableType).simpleName);
-  final List<String>? imports;
+  final List<String> imports;
   final String? additionalContents;
-  final List<Type>? additionalTypes;
+  final List<Type> additionalTypes;
 
   Future<String> get scriptSource async {
     final typeSource = (await _getClass(executableType)).toSource();
-    var builder = StringBuffer();
+    final builder = StringBuffer();
 
     builder.writeln("import 'dart:async';");
     builder.writeln("import 'dart:isolate';");
     builder.writeln("import 'dart:mirrors';");
-    imports?.forEach((import) {
-      builder.writeln("import '$import';");
-    });
+    for (final anImport in imports) {
+      builder.writeln("import '$anImport';");
+    }
     builder.writeln("""
 Future main (List<String> args, Map<String, dynamic> message) async {
   final sendPort = message['_sendPort'];
@@ -44,7 +47,7 @@ Future main (List<String> args, Map<String, dynamic> message) async {
     builder.writeln(typeSource);
 
     builder.writeln((await _getClass(Executable)).toSource());
-    for (var type in additionalTypes ?? []) {
+    for (final type in additionalTypes) {
       final source = await _getClass(type);
       builder.writeln(source.toSource());
     }
@@ -67,14 +70,15 @@ Future main (List<String> args, Map<String, dynamic> message) async {
     final typeName = MirrorSystem.getName(reflectClass(type).simpleName);
 
     return unit.unit.declarations
-        .where((u) => u is ClassDeclaration)
-        .map((cu) => cu as ClassDeclaration)
+        .whereType<ClassDeclaration>()
         .firstWhere((classDecl) => classDecl.name.name == typeName);
   }
 }
 
-AnalysisContext _createContext(String path,
-    {ResourceProvider? resourceProvider}) {
+AnalysisContext _createContext(
+  String path, {
+  ResourceProvider? resourceProvider,
+}) {
   resourceProvider ??= PhysicalResourceProvider.INSTANCE;
   final builder = ContextBuilder(resourceProvider: resourceProvider);
   final contextLocator = ContextLocator(

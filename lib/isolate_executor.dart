@@ -3,6 +3,6 @@
 ///
 library isolate_executor;
 
-export 'src/source_generator.dart';
-export 'src/executor.dart';
 export 'src/executable.dart';
+export 'src/executor.dart';
+export 'src/source_generator.dart';

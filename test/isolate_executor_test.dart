@@ -27,8 +27,10 @@ void main() {
   });
 
   test("Send values to Executable and use them", () async {
-    final result = await IsolateExecutor.run(Echo({'echo': 'hello'}),
-        packageConfigURI: projDir.resolve(".packages"));
+    final result = await IsolateExecutor.run(
+      Echo({'echo': 'hello'}),
+      packageConfigURI: projDir.resolve(".packages"),
+    );
     expect(result, 'hello');
   });
 
@@ -46,8 +48,8 @@ void main() {
   });
 
   test("Can get messages thru stream", () async {
-    var completers = [new Completer(), new Completer(), new Completer()];
-    var futures = [
+    final completers = [Completer(), Completer(), Completer()];
+    final futures = [
       completers[0].future,
       completers[1].future,
       completers[2].future
@@ -85,6 +87,8 @@ class AdditionalContents { int get id => 10; }
       await IsolateExecutor.run(Thrower({}),
           packageConfigURI: projDir.resolve(".packages"));
       fail('unreachable');
+
+      //ignore: avoid_catching_errors
     } on StateError catch (e, st) {
       expect(e.toString(), contains("thrower-error"));
       expect(st.toString().contains("import"), false);
@@ -104,7 +108,7 @@ class SimpleReturner extends Executable {
 
 class Echo extends Executable<String> {
   Echo(Map<String, dynamic> message)
-      : echoMessage = message['echo'],
+      : echoMessage = message['echo']!.toString(),
         super(message);
 
   final String echoMessage;
@@ -124,13 +128,22 @@ class InPackage extends Executable<Map<String, String>> {
 
   @override
   Future<Map<String, String>> execute() async {
-    SomeObjectBaseClass def = instanceOf("DefaultObject", namedArguments: {});
-    SomeObjectBaseClass pos = instanceOf("PositionalArgumentsObject",
-        positionalArguments: ["positionalArgs"], namedArguments: {});
-    SomeObjectBaseClass nam =
-        instanceOf("NamedArgumentsObject", namedArguments: {#id: "namedArgs"});
-    SomeObjectBaseClass con =
-        instanceOf("NamedConstructorObject", constructorName: #fromID);
+    final SomeObjectBaseClass def = instanceOf(
+      "DefaultObject",
+      namedArguments: {},
+    );
+    final SomeObjectBaseClass pos = instanceOf(
+      "PositionalArgumentsObject",
+      positionalArguments: ["positionalArgs"],
+      namedArguments: {},
+    );
+    final SomeObjectBaseClass nam = instanceOf(
+      "NamedArgumentsObject",
+      namedArguments: {#id: "namedArgs"},
+    );
+    final SomeObjectBaseClass con =
+        instanceOf("NamedConstructorObject", constructorName: #fromID)
+            as SomeObjectBaseClass;
     return {"def": def.id, "pos": pos.id, "nam": nam.id, "con": con.id};
   }
 }

@@ -6,8 +6,11 @@ import 'package:conduit_isolate_executor/src/executable.dart';
 import 'package:conduit_isolate_executor/src/source_generator.dart';
 
 class IsolateExecutor<U> {
-  IsolateExecutor(this.generator,
-      {this.packageConfigURI, this.message = const {}});
+  IsolateExecutor(
+    this.generator, {
+    this.packageConfigURI,
+    this.message = const {},
+  });
 
   final SourceGenerator generator;
   final Map<String, dynamic> message;
@@ -23,14 +26,15 @@ class IsolateExecutor<U> {
 
   Future<U> execute() async {
     if (packageConfigURI != null &&
-        !(File.fromUri(packageConfigURI!).existsSync())) {
+        !File.fromUri(packageConfigURI!).existsSync()) {
       throw StateError(
-          "Package file '$packageConfigURI' not found. Run 'pub get' and retry.");
+        "Package file '$packageConfigURI' not found. Run 'pub get' and retry.",
+      );
     }
 
     final scriptSource = Uri.encodeComponent(await generator.scriptSource);
 
-    var onErrorPort = ReceivePort()
+    final onErrorPort = ReceivePort()
       ..listen((err) async {
         if (err is List) {
           final stack =
@@ -42,7 +46,7 @@ class IsolateExecutor<U> {
         }
       });
 
-    var controlPort = ReceivePort()
+    final controlPort = ReceivePort()
       ..listen((results) {
         if (results is Map && results.length == 1) {
           if (results.containsKey("_result")) {
@@ -59,18 +63,25 @@ class IsolateExecutor<U> {
     try {
       message["_sendPort"] = controlPort.sendPort;
 
-      final dataUri =
-          Uri.parse("data:application/dart;charset=utf-8,${scriptSource}");
+      final dataUri = Uri.parse(
+        "data:application/dart;charset=utf-8,$scriptSource",
+      );
       if (packageConfigURI != null) {
-        await Isolate.spawnUri(dataUri, [], message,
-            errorsAreFatal: true,
-            onError: onErrorPort.sendPort,
-            packageConfig: packageConfigURI);
+        await Isolate.spawnUri(
+          dataUri,
+          [],
+          message,
+          onError: onErrorPort.sendPort,
+          packageConfig: packageConfigURI,
+        );
       } else {
-        await Isolate.spawnUri(dataUri, [], message,
-            errorsAreFatal: true,
-            onError: onErrorPort.sendPort,
-            automaticPackageResolution: true);
+        await Isolate.spawnUri(
+          dataUri,
+          [],
+          message,
+          onError: onErrorPort.sendPort,
+          automaticPackageResolution: true,
+        );
       }
 
       return await completer.future;
@@ -82,19 +93,27 @@ class IsolateExecutor<U> {
     }
   }
 
-  static Future<T> run<T>(Executable<T> executable,
-      {Uri? packageConfigURI,
-      List<String>? imports,
-      String? additionalContents,
-      void eventHandler(dynamic event)?,
-      void logHandler(String line)?,
-      List<Type>? additionalTypes}) async {
-    final source = SourceGenerator(executable.runtimeType,
-        imports: imports,
-        additionalContents: additionalContents,
-        additionalTypes: additionalTypes);
-    var executor = IsolateExecutor<T>(source,
-        packageConfigURI: packageConfigURI, message: executable.message);
+  static Future<T> run<T>(
+    Executable<T> executable, {
+    List<String> imports = const [],
+    Uri? packageConfigURI,
+    String? additionalContents,
+    List<Type> additionalTypes = const [],
+    void Function(dynamic event)? eventHandler,
+    void Function(String line)? logHandler,
+  }) async {
+    final source = SourceGenerator(
+      executable.runtimeType,
+      imports: imports,
+      additionalContents: additionalContents,
+      additionalTypes: additionalTypes,
+    );
+
+    final executor = IsolateExecutor<T>(
+      source,
+      packageConfigURI: packageConfigURI,
+      message: executable.message,
+    );
 
     if (eventHandler != null) {
       executor.events.listen(eventHandler);

@@ -8,10 +8,11 @@ environment:
   sdk: ">=2.12.0-0 <3.0.0"
 
 dependencies:
-  analyzer: ^1.1.0
+  analyzer: ^1.3.0
   glob: ^2.0.0
 
 dev_dependencies:
+  lint: ^1.5.3
   test: ^1.6.5
   test_package:
     path: test/test_package

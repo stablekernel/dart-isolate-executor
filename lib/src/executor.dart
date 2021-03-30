@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:conduit_isolate_executor/src/executable.dart';
-import 'package:conduit_isolate_executor/src/source_generator.dart';
+import 'package:conduit_isolate_exec/src/executable.dart';
+import 'package:conduit_isolate_exec/src/source_generator.dart';
 
 class IsolateExecutor<U> {
   IsolateExecutor(
